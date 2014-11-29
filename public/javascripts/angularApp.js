@@ -69,6 +69,10 @@ angular.module('flapperNews', ['ui.router'])
 }])
 .controller('MainCtrl', ['$scope', 'posts', function ($scope, posts) {
     $scope.posts = posts.collection;
+    $scope.isAddingPost = false;
+    $scope.addingPost = function () {
+        $scope.isAddingPost = true;
+    };
     $scope.addPost = function () {
         if (!$scope.title || $scope.title === '') {
             return;
@@ -79,6 +83,7 @@ angular.module('flapperNews', ['ui.router'])
         });
         $scope.title = '';
         $scope.link = '';
+        $scope.isAddingPost = false;
     };
     $scope.upvote = function (post) {
         posts.upvote(post);
@@ -89,6 +94,10 @@ angular.module('flapperNews', ['ui.router'])
 }])
 .controller('PostsCtrl', ['$scope', 'posts', 'post', function ($scope, posts, post) {
     $scope.post = post;
+    $scope.isAddingComment = false;
+    $scope.addingComment = function () {
+        $scope.isAddingComment = true;
+    };
     $scope.addComment = function () {
         if ($scope.body === '') {
             return;
@@ -100,6 +109,7 @@ angular.module('flapperNews', ['ui.router'])
             $scope.post.comments.push(comment);
         });
         $scope.body = '';
+        $scope.isAddingComment = false;
     };
     $scope.upvote = function (comment) {
         posts.upvoteComment(post, comment);
