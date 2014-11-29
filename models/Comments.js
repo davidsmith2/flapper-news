@@ -8,4 +8,14 @@ var CommentSchema = new Schema({
     post: [{type: Schema.Types.ObjectId, ref: 'Post'}]
 });
 
-mongoose.model('Comment', CommentSchema);
+CommentSchema.methods.upvote = function (cb) {
+    this.upvotes += 1;
+    this.save(cb);
+};
+
+CommentSchema.methods.downvote = function (cb) {
+    this.upvotes -= 1;
+    this.save(cb);
+};
+
+module.exports = mongoose.model('Comment', CommentSchema);
