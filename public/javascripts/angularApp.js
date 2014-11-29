@@ -4,18 +4,66 @@ angular.module('flapperNews', ['ui.router'])
         .state('home', {
             url: '/home',
             templateUrl: '/home.html',
-            controller: 'MainCtrl'
+            controller: 'MainCtrl',
+            resolve: {
+                postPromise: ['posts', function (posts) {
+                    return posts.getAll();
+                }]
+            }
         })
         .state('posts', {
             url: '/posts/{id}',
             templateUrl: '/posts.html',
-            controller: 'PostsCtrl'
+            controller: 'PostsCtrl',
+            resolve: {
+                post: ['$stateParams', 'posts', function ($stateParams, posts) {
+                    return posts.get($stateParams.id);
+                }]
+            }
         });
     $urlRouterProvider.otherwise('home');
 }])
-.factory('posts', [function () {
+.factory('posts', ['$http', function ($http) {
     var o = {
-        collection: []
+        collection: [],
+        getAll: function () {
+            return $http.get('/posts').success(function (data) {
+                angular.copy(data, o.collection);
+            });
+        },
+        create: function (post) {
+            return $http.post('/posts', post).success(function (data) {
+                o.collection.push(data);
+            });
+        },
+        get: function (id) {
+            return $http.get('/posts/' + id).then(function (res) {
+                return res.data;
+            });
+        },
+        upvote: function (post) {
+            return $http.put('/posts/' + post._id + '/upvote').success(function (data) {
+                post.upvotes += 1;
+            });
+        },
+        downvote: function (post) {
+            return $http.put('/posts/' + post._id + '/downvote').success(function (data) {
+                post.upvotes -= 1;
+            });
+        },
+        addComment: function (id, comment) {
+            return $http.post('/posts/' + id + '/comments', comment);
+        },
+        upvoteComment: function (post, comment) {
+            return $http.put('/posts/' + post._id + '/comments/' + comment._id + '/upvote').success(function (data) {
+                comment.upvotes += 1;
+            });
+        },
+        downvoteComment: function (post, comment) {
+            return $http.put('/posts/' + post._id + '/comments/' + comment._id + '/downvote').success(function (data) {
+                comment.upvotes -= 1;
+            });
+        }
     };
     return o;
 }])
@@ -25,42 +73,38 @@ angular.module('flapperNews', ['ui.router'])
         if (!$scope.title || $scope.title === '') {
             return;
         }
-        $scope.posts.push({
+        posts.create({
             title: $scope.title,
-            link: $scope.link,
-            upvotes: 0,
-            comments: [
-                {author: 'Joe', body: 'Cool post!', upvotes: 0},
-                {author: 'Bob', body: 'Great idea but everything is wrong!', upvotes: 0}
-            ]
+            link: $scope.link
         });
         $scope.title = '';
         $scope.link = '';
     };
     $scope.upvote = function (post) {
-        post.upvotes += 1;
+        posts.upvote(post);
     };
     $scope.downvote = function (post) {
-        post.upvotes -= 1;
+        posts.downvote(post);
     };
 }])
-.controller('PostsCtrl', ['$scope', '$stateParams', 'posts', function ($scope, $stateParams, posts) {
-    $scope.post = posts.collection[$stateParams.id];
+.controller('PostsCtrl', ['$scope', 'posts', 'post', function ($scope, posts, post) {
+    $scope.post = post;
     $scope.addComment = function () {
         if ($scope.body === '') {
             return;
         }
-        $scope.post.comments.push({
+        posts.addComment(post._id, {
             body: $scope.body,
-            author: 'user',
-            upvotes: 0
+            author: 'user'
+        }).success(function (comment) {
+            $scope.post.comments.push(comment);
         });
         $scope.body = '';
     };
     $scope.upvote = function (comment) {
-        comment.upvotes += 1;
+        posts.upvoteComment(post, comment);
     };
     $scope.downvote = function (comment) {
-        comment.upvotes -= 1;
+        posts.downvoteComment(post, comment);
     };
 }]);
