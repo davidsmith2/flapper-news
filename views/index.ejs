@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <title>My Angular App!</title>
+        <title><%= title %></title>
         <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
         <style type="text/css">
         .glyphicon-thumbs-up,
@@ -16,7 +16,7 @@
     <body ng-app="flapperNews">
         <div class="container">
             <div class="page-header text-center">
-                <h1>Flapper News</h1>
+                <h1><%= title %></h1>
             </div>
             <ui-view></ui-view>
         </div>
@@ -103,6 +103,7 @@
                         <form ng-submit="addComment()">
                             <div class="form-group">
                                 <input type="text" class="form-control" placeholder="Comment" ng-model="body"></input>
+                                <input type="text" class="form-control" placeholder="Author" ng-model="author"></input>
                             </div>
                             <button type="submit" class="btn btn-primary">Post</button>
                         </form>
